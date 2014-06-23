@@ -68,10 +68,12 @@ class SampleVariable():
 
     def get_sv(self, name, split_string):
         """ """
-        segments = split_string.strip().split('_')
         variable = self._conf[name]
+        if not split_string:
+            return variable['default']
         conditions = variable['condition']
-
+        
+        segments = split_string.strip().split('_')
         for seg_name in segments:
             if seg_name in conditions:
                 return conditions[seg_name]
@@ -143,7 +145,7 @@ class UserSplit():
                     raise ValueError("segment %s [%s,%s) and %s[%s,%s) overlaped in layer %s" % (
                         seg_name, start, end, last_seg, last_start, last_end, layer_name ))
 
-                res[seg_name]['segment'].append((seg_name, start, end))
+                res[layer_name]['segment'].append((seg_name, start, end))
 
                 last_seg = seg_name
                 last_start = start
@@ -162,7 +164,7 @@ class UserSplit():
             return ""
 
         layer = self._conf[layer_name]
-        buf = layer['hashcode'] + tag
+        buf = layer['hashcode'] + tag.lower()
         residual = int(md5(buf).hexdigest()[-10:], 16) % HASH_DIVISOR
 
         self._split_string = ''
@@ -170,6 +172,7 @@ class UserSplit():
         for (seg_name, start, end) in segments:
             if residual < end:
                 if residual >= start:
+                    self._split_string = seg_name
                     return seg_name
                 else:
                     return ''
@@ -211,56 +214,56 @@ class UserSplit():
         """
         return self.split(session_id, layer_name)
 
-    def splt_in_mob(self, layer_name, log):
+    def split_in_mob(self, layer_name, log):
         """
         与php版本的输入不一致，php版本输入是MVC架构的controller，这里输入是一行log
         mobile_app_log_new
         """
         platform = ''
-        user_info = {}
+        access_token = ''
+        device_token = ''
+        open_udid = ''
+        imei = ''
+        macid = ''
+
         if isinstance(log, list):
-            # iphone ipad android
             platform  = log[13]
-            if platform == 'android':
-                imei = log[18]
-                macid = log[27]
-                access_token = log[7]
-                if imei:
-                    user_info['imei'] = imei
-                elif macid:
-                    user_info['macid'] = macid
-                else:
-                    user_info['access_token'] = access_token
-            elif platform in ('iphone', 'ipad'):
-                device_token = log[10]
-                udid = log[17]
-                access_token = log[7]
-                if device_token:
-                    user_info['device_token'] = device_token
-                elif udid:
-                    user_info['open_udid'] = udid
-                else:
-                    user_info['access_token'] = access_token
+            access_token = log[7]
+            
+            device_token = log[10]
+            udid = log[17]
+
+            imei = log[18]
+            macid = log[27]
+        else:
+            platform = log.client_device
+            access_token = log.access_token
+
+            device_token = log.device_token
+            open_udid = log.udid
+
+            imei = log.imei
+            macid = log.macid
+
+        user_info = {}
+        
+        if platform == 'android':
+            # iphone ipad android            
+            if imei:
+                user_info['imei'] = imei
+            elif macid:
+                user_info['macid'] = macid
             else:
                 user_info['access_token'] = access_token
-        else:   # namedtuple obj
-            platform = log.client_device
-            if platform == 'android':
-                if log.imei:
-                    user_info['imei'] = log.imei
-                elif log.macid:
-                    user_info['macid'] = log.macid
-                else:
-                    user_info['access_token'] = log.access_token
-            elif platform in ('iphone', 'ipad'):
-                if log.device_token:
-                    user_info['device_token'] = log.device_token
-                elif log.udid:
-                    user_info['open_udid'] = log.udid
-                else:
-                    user_info['access_token'] = log.access_token
+        elif platform in ('iphone', 'ipad'):
+            if device_token and device_token != '00000000000000000000000000000000':
+                user_info['device_token'] = device_token
+            elif open_udid:
+                user_info['open_udid'] = open_udid
             else:
-                user_info['access_token'] = log.access_token
+                user_info['access_token'] = access_token
+        else:
+                user_info['access_token'] = access_token
 
         return self.split_with_user_info(user_info, layer_name)
 

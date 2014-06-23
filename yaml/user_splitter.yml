@@ -1,0 +1,39 @@
+# AB实验流量切分配置
+# 将流量按照用户切分为多组
+
+-
+  layer : A                     # 第A层， 对mob上首页上的流行专题进行轮转展示。
+  hashcode : JQESbpm2yRI0QbKljdbdVqMGxPhAANWH
+  segment:
+    -
+      name: A1
+      start: 0
+      end  : 50
+    -
+      name: A2
+      start: 50
+      end  : 100
+-
+  layer: B                      # 第B层， 抽样关闭支付宝
+  hashcode : lR2Mbp9gsfhKvip1DXeT8abh5eFlj0VA
+  segment: 
+    -
+      name : B1
+      start: 0
+      end  : 10
+    -
+      name : B2
+      start: 10
+      end  : 20
+    -
+      name : B3
+      start: 20
+      end  : 30
+    -
+      name : B4
+      start: 30
+      end  : 40
+      
+        
+        
+ 

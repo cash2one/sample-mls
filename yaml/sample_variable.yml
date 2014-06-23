@@ -1,0 +1,27 @@
+swap_fguide:                    # fashion guide 轮换
+  default: 0
+  layer:   A
+  condition:
+    -
+      segment: A1
+      value  : 0
+    -
+      segment: A2
+      value  : 1
+      
+close_alipay:                   #  关闭支付宝
+  default:  0
+  layer:    B
+  condition:
+    -
+      segment: B1
+      value  : 1
+    -
+      segment: B2
+      value  : 0
+    -
+      segment: B3
+      value  : 0
+    -
+      segment: B4
+      value  : 0

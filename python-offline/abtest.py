@@ -267,6 +267,20 @@ class UserSplit():
 
         return self.split_with_user_info(user_info, layer_name)
 
+def specific2kv(s):
+    """
+    convert s into a dict. The s is
+      1. specific data in mobile_app_log_new
+      2. ext_logs in mob_snakelog
+    """
+    ret = {}
+    for e in s.strip().split(','):
+        if e:
+            k,v = e.split(":")
+            ret[k] = v
+
+    return ret
+
 
 if __name__ == "__main__":
     pass
